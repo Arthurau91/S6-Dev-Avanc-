@@ -2,9 +2,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>JSP - Hello World</title>
+    <title>Master Annonce</title>
 </head>
 <body>
-<jsp:forward page="annonce-list"/>
+<jsp:forward page="login"/>
 </body>
 </html>

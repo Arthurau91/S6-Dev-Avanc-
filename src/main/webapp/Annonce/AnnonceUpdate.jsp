@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <html>
 <head>
     <title>Modifier l'annonce</title>
@@ -34,8 +35,19 @@
                     <input type="email" name="mail" class="form-control" value="${annonce.mail}">
                 </div>
 
-                <button type="submit" class="btn btn-info">Update</button>
-                <a href="annonce-list" class="btn btn-default">Annuler</a>
+                <div class="form-group">
+                    <label>Catégorie</label>
+                    <select name="categoryId" class="form-control" required>
+                        <c:forEach items="${categories}" var="cat">
+                            <option value="${cat.id}" ${annonce.category.id == cat.id ? 'selected' : ''}>
+                                    ${cat.label}
+                            </option>
+                        </c:forEach>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-info">Modifier</button>
+                <a href="annonce-list" class="btn btn-default">Retour à la liste</a>
             </form>
 
         </div>
