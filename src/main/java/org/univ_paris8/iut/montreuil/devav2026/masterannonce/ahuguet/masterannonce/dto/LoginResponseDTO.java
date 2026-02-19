@@ -3,12 +3,12 @@ package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masteranno
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * DTO for login response containing the authentication token.
+ * DTO for login response containing the JWT token.
  */
-@Schema(description = "Login response with token")
+@Schema(description = "Login response with JWT token")
 public class LoginResponseDTO {
 
-    @Schema(description = "Authentication token (UUID)", example = "550e8400-e29b-41d4-a716-446655440000")
+    @Schema(description = "JWT authentication token")
     private String token;
 
     @Schema(description = "Token expiry time in seconds", example = "3600")

@@ -1,14 +1,17 @@
 package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.model;
 
-import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-import java.sql.Timestamp;
-import java.time.Instant;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * JPA Entity representing a user.
+ */
 @Entity
 @Table(name = "users")
 public class User {
@@ -33,13 +36,13 @@ public class User {
     private String role = "USER";
 
     @Column(name = "created_at")
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private List<Annonce> annonces = new ArrayList<>();
 
     public User() {
-        this.createdAt = Timestamp.from(Instant.now());
+        this.createdAt = LocalDateTime.now();
     }
 
     public User(String username, String email, String password) {
@@ -53,6 +56,8 @@ public class User {
         this(username, email, password);
         this.role = role;
     }
+
+    // --- Getters & Setters ---
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -69,8 +74,8 @@ public class User {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public List<Annonce> getAnnonces() { return annonces; }
     public void setAnnonces(List<Annonce> annonces) { this.annonces = annonces; }

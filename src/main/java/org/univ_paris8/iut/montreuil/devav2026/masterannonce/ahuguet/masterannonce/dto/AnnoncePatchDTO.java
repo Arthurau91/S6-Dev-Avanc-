@@ -1,19 +1,12 @@
 package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 /**
  * DTO for partial update of an Annonce (PATCH).
- * Fields are optional — only non-null fields will be applied.
- *
- * Expected logic:
- * 1. Client sends only the fields to update (null fields are ignored).
- * 2. The version field is mandatory for optimistic locking.
- * 3. The service iterates over non-null fields and applies them to the existing entity.
- * 4. Business rules still apply (e.g. PUBLISHED status blocks modification).
+ * Only non-null fields will be applied.
  */
 @Schema(description = "Request body for partial update (PATCH) of an announcement")
 public class AnnoncePatchDTO {
@@ -41,7 +34,7 @@ public class AnnoncePatchDTO {
     private String status;
 
     @NotNull(message = "La version est obligatoire pour le verrouillage optimiste")
-    @Schema(description = "Version for optimistic locking", example = "0", required = true)
+    @Schema(description = "Version for optimistic locking", example = "0", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long version;
 
     public AnnoncePatchDTO() {}

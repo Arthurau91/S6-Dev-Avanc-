@@ -1,13 +1,20 @@
 package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.model;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-import java.sql.Timestamp;
-import java.time.Instant;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
+import java.time.LocalDateTime;
+
+/**
+ * JPA Entity representing an announcement.
+ */
 @Entity
-@Table(name = "annonce")
+@Table(name = "annonce", indexes = {
+        @Index(name = "idx_annonce_status", columnList = "status"),
+        @Index(name = "idx_annonce_author", columnList = "author_id"),
+        @Index(name = "idx_annonce_category", columnList = "category_id")
+})
 public class Annonce {
 
     @Id
@@ -32,9 +39,11 @@ public class Annonce {
     @Column(length = 64)
     private String mail;
 
-    private Timestamp date;
+    @Column(name = "date")
+    private LocalDateTime date;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private AnnonceStatus status;
 
     @Version
@@ -49,7 +58,7 @@ public class Annonce {
     private Category category;
 
     public Annonce() {
-        this.date = Timestamp.from(Instant.now());
+        this.date = LocalDateTime.now();
         this.status = AnnonceStatus.DRAFT;
     }
 
@@ -60,6 +69,8 @@ public class Annonce {
         this.adress = adress;
         this.mail = mail;
     }
+
+    // --- Getters & Setters ---
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -76,8 +87,8 @@ public class Annonce {
     public String getMail() { return mail; }
     public void setMail(String mail) { this.mail = mail; }
 
-    public Timestamp getDate() { return date; }
-    public void setDate(Timestamp date) { this.date = date; }
+    public LocalDateTime getDate() { return date; }
+    public void setDate(LocalDateTime date) { this.date = date; }
 
     public AnnonceStatus getStatus() { return status; }
     public void setStatus(AnnonceStatus status) { this.status = status; }

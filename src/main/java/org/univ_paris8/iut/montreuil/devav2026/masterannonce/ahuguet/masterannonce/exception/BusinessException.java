@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Base business exception with error type and messages.
+ * Base business exception with error type, messages and HTTP status.
  */
 public class BusinessException extends RuntimeException {
 

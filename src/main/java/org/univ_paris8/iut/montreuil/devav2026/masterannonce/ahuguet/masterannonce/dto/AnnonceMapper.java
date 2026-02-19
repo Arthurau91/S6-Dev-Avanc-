@@ -1,77 +1,71 @@
 package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dto;
 
+import org.mapstruct.*;
 import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.model.Annonce;
 
 /**
- * Mapper using the Builder pattern for Entity <-> DTO conversions.
+ * MapStruct mapper for Annonce entity <-> DTO conversions.
+ * componentModel = "spring" is set globally via compiler arg.
+ *
+ * Rules enforced:
+ * - No manual "new DTO()" in business logic
+ * - No setter-by-setter mapping
+ * - @MappingTarget for updates
  */
-public final class AnnonceMapper {
-
-    private AnnonceMapper() {}
-
-    /**
-     * Convert Annonce entity to AnnonceDTO using Builder pattern.
-     */
-    public static AnnonceDTO toDTO(Annonce entity) {
-        if (entity == null) return null;
-
-        AnnonceDTO.Builder builder = AnnonceDTO.builder()
-                .id(entity.getId())
-                .title(entity.getTitle())
-                .description(entity.getDescription())
-                .adress(entity.getAdress())
-                .mail(entity.getMail())
-                .date(entity.getDate())
-                .status(entity.getStatus() != null ? entity.getStatus().name() : null)
-                .version(entity.getVersion());
-
-        if (entity.getAuthor() != null) {
-            builder.authorUsername(entity.getAuthor().getUsername())
-                   .authorId(entity.getAuthor().getId());
-        }
-
-        if (entity.getCategory() != null) {
-            builder.categoryLabel(entity.getCategory().getLabel())
-                   .categoryId(entity.getCategory().getId());
-        }
-
-        return builder.build();
-    }
+@Mapper(componentModel = "spring")
+public interface AnnonceMapper {
 
     /**
-     * Convert AnnonceCreateDTO to Annonce entity using Builder-style setters.
+     * Entity -> Response DTO.
+     * Maps nested author/category fields to flat DTO fields.
      */
-    public static Annonce toEntity(AnnonceCreateDTO dto) {
-        if (dto == null) return null;
-
-        Annonce annonce = new Annonce();
-        annonce.setTitle(dto.getTitle());
-        annonce.setDescription(dto.getDescription());
-        annonce.setAdress(dto.getAdress());
-        annonce.setMail(dto.getMail());
-        return annonce;
-    }
+    @Mapping(source = "status", target = "status", qualifiedByName = "statusToString")
+    @Mapping(source = "author.username", target = "authorUsername")
+    @Mapping(source = "author.id", target = "authorId")
+    @Mapping(source = "category.label", target = "categoryLabel")
+    @Mapping(source = "category.id", target = "categoryId")
+    AnnonceDTO toDTO(Annonce entity);
 
     /**
-     * Apply AnnonceUpdateDTO fields to an existing Annonce entity.
+     * Create DTO -> Entity.
+     * Ignores relationships (author, category) — set in service layer.
      */
-    public static void applyUpdate(AnnonceUpdateDTO dto, Annonce entity) {
-        entity.setTitle(dto.getTitle());
-        entity.setDescription(dto.getDescription());
-        entity.setAdress(dto.getAdress());
-        entity.setMail(dto.getMail());
-        entity.setVersion(dto.getVersion());
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "date", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "author", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    Annonce toEntity(AnnonceCreateDTO dto);
 
     /**
-     * Apply non-null fields from AnnoncePatchDTO to an existing Annonce entity.
-     * Only fields that are not null in the DTO are applied (partial update).
+     * Full update DTO -> existing Entity (PUT) using @MappingTarget.
+     * Ignores id, date, status, author — preserves them.
      */
-    public static void applyPatch(AnnoncePatchDTO dto, Annonce entity) {
-        if (dto.getTitle() != null) entity.setTitle(dto.getTitle());
-        if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
-        if (dto.getAdress() != null) entity.setAdress(dto.getAdress());
-        if (dto.getMail() != null) entity.setMail(dto.getMail());
-        entity.setVersion(dto.getVersion());
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "date", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "author", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    void updateEntityFromDTO(AnnonceUpdateDTO dto, @MappingTarget Annonce entity);
+
+    /**
+     * Partial update DTO -> existing Entity (PATCH) using @MappingTarget.
+     * Uses NullValuePropertyMappingStrategy.IGNORE to skip null fields.
+     */
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "date", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "author", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    void patchEntityFromDTO(AnnoncePatchDTO dto, @MappingTarget Annonce entity);
+
+    /**
+     * Convert AnnonceStatus enum to String.
+     */
+    @Named("statusToString")
+    default String statusToString(org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.model.AnnonceStatus status) {
+        return status != null ? status.name() : null;
     }
 }

@@ -1,24 +1,23 @@
 package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 /**
- * DTO for creating a new Annonce.
+ * DTO for creating a new Annonce (POST).
  */
 @Schema(description = "Request body for creating an announcement")
 public class AnnonceCreateDTO {
 
     @NotBlank(message = "Le titre est obligatoire")
     @Size(max = 64, message = "Le titre ne doit pas dépasser 64 caractères")
-    @Schema(description = "Title", example = "Vends PC portable", required = true)
+    @Schema(description = "Title", example = "Vends PC portable", requiredMode = Schema.RequiredMode.REQUIRED)
     private String title;
 
     @NotBlank(message = "La description est obligatoire")
     @Size(max = 256, message = "La description ne doit pas dépasser 256 caractères")
-    @Schema(description = "Description", example = "PC en excellent état", required = true)
+    @Schema(description = "Description", example = "PC en excellent état", requiredMode = Schema.RequiredMode.REQUIRED)
     private String description;
 
     @Size(max = 64, message = "L'adresse ne doit pas dépasser 64 caractères")

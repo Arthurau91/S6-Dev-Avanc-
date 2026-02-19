@@ -1,9 +1,11 @@
 package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.model;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import java.util.Objects;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
+/**
+ * JPA Entity representing a category.
+ */
 @Entity
 @Table(name = "category")
 public class Category {

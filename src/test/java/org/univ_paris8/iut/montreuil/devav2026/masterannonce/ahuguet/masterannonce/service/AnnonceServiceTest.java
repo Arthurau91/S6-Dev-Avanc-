@@ -4,230 +4,290 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dao.AnnonceRepository;
-import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dao.CategoryRepository;
-import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dao.UserRepository;
-import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dto.AnnonceCreateDTO;
-import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dto.AnnonceDTO;
-import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dto.AnnonceUpdateDTO;
-import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dto.PaginatedResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dto.*;
 import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.exception.ConflictException;
 import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.exception.ForbiddenException;
-import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.exception.NotFoundException;
+import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.exception.ResourceNotFoundException;
 import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.model.Annonce;
 import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.model.AnnonceStatus;
 import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.model.Category;
 import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.model.User;
-import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.utils.EntityManagerHelper;
+import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.repository.AnnonceRepository;
+import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.repository.CategoryRepository;
+import org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.repository.UserRepository;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.Arrays;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for AnnonceService.
- * Uses Mockito to mock repositories — no database access.
+ * Tests business rules strictly with Mockito.
  */
 @ExtendWith(MockitoExtension.class)
 class AnnonceServiceTest {
 
     @Mock
     private AnnonceRepository annonceRepository;
-
     @Mock
     private CategoryRepository categoryRepository;
-
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private AnnonceMapper annonceMapper;
 
+    @InjectMocks
     private AnnonceService annonceService;
 
-    private User testUser;
+    private User author;
     private User otherUser;
-    private Category testCategory;
-    private Annonce testAnnonce;
+    private Category category;
+    private Annonce annonce;
+    private AnnonceDTO annonceDTO;
 
     @BeforeEach
     void setUp() {
-        try {
-            EntityManagerHelper.init("MasterAnnonceTestPU");
-        } catch (Exception ignored) {}
+        author = new User("testuser", "test@example.com", "encodedpwd", "USER");
+        author.setId(1L);
 
-        annonceService = new AnnonceService(annonceRepository, categoryRepository, userRepository);
-
-        testUser = new User("testuser", "test@test.com", "password123", "USER");
-        testUser.setId(1L);
-
-        otherUser = new User("other", "other@test.com", "password123", "USER");
+        otherUser = new User("other", "other@example.com", "encodedpwd", "USER");
         otherUser.setId(2L);
 
-        testCategory = new Category("Informatique");
-        testCategory.setId(1L);
+        category = new Category("Informatique");
+        category.setId(1L);
 
-        testAnnonce = new Annonce("Test Title", "Test Description", "Test Address", "test@mail.com");
-        testAnnonce.setId(1L);
-        testAnnonce.setAuthor(testUser);
-        testAnnonce.setCategory(testCategory);
-        testAnnonce.setStatus(AnnonceStatus.DRAFT);
-        testAnnonce.setVersion(0L);
-        testAnnonce.setDate(Timestamp.from(Instant.now()));
+        annonce = new Annonce("Titre", "Description", "Adresse", "mail@test.com");
+        annonce.setId(1L);
+        annonce.setAuthor(author);
+        annonce.setCategory(category);
+        annonce.setStatus(AnnonceStatus.DRAFT);
+        annonce.setVersion(0L);
+        annonce.setDate(LocalDateTime.now());
+
+        annonceDTO = new AnnonceDTO();
+        annonceDTO.setId(1L);
+        annonceDTO.setTitle("Titre");
+        annonceDTO.setStatus("DRAFT");
     }
 
-    @Test
-    @DisplayName("getAnnonces - should return paginated results")
-    void testGetAnnonces() {
-        List<Annonce> annonces = Arrays.asList(testAnnonce);
-        when(annonceRepository.findWithFilters(any(), any(), any(), eq(1), eq(10))).thenReturn(annonces);
-        when(annonceRepository.countWithFilters(any(), any(), any())).thenReturn(1L);
+    // --- GET tests ---
 
-        PaginatedResponseDTO<AnnonceDTO> result = annonceService.getAnnonces(null, null, null, 1, 10);
+    @Test
+    @DisplayName("getAnnonceById - returns DTO when found")
+    void getAnnonceById_found() {
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
+        when(annonceMapper.toDTO(annonce)).thenReturn(annonceDTO);
+
+        AnnonceDTO result = annonceService.getAnnonceById(1L);
 
         assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        assertEquals(1, result.getTotalItems());
-        assertEquals("Test Title", result.getData().get(0).getTitle());
+        assertEquals(1L, result.getId());
+        verify(annonceRepository).findById(1L);
     }
 
     @Test
-    @DisplayName("getAnnonceById - should return DTO when found")
-    void testGetAnnonceById_found() {
-        when(annonceRepository.findByIdFetched(1L)).thenReturn(testAnnonce);
+    @DisplayName("getAnnonceById - throws ResourceNotFoundException when not found")
+    void getAnnonceById_notFound() {
+        when(annonceRepository.findById(99L)).thenReturn(Optional.empty());
 
-        AnnonceDTO dto = annonceService.getAnnonceById(1L);
-
-        assertNotNull(dto);
-        assertEquals("Test Title", dto.getTitle());
-        assertEquals("testuser", dto.getAuthorUsername());
+        assertThrows(ResourceNotFoundException.class, () -> annonceService.getAnnonceById(99L));
     }
 
     @Test
-    @DisplayName("getAnnonceById - should throw NotFoundException when not found")
-    void testGetAnnonceById_notFound() {
-        when(annonceRepository.findByIdFetched(999L)).thenReturn(null);
-        assertThrows(NotFoundException.class, () -> annonceService.getAnnonceById(999L));
+    @SuppressWarnings("unchecked")
+    @DisplayName("getAnnonces - returns paginated results")
+    void getAnnonces_paginated() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Annonce> page = new PageImpl<>(List.of(annonce), pageable, 1);
+
+        when(annonceRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+        when(annonceMapper.toDTO(annonce)).thenReturn(annonceDTO);
+
+        Page<AnnonceDTO> result = annonceService.getAnnonces(null, null, null, null, null, null, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.getContent().size());
     }
 
+    // --- CREATE tests ---
+
     @Test
-    @DisplayName("createAnnonce - should create and return DTO")
-    void testCreateAnnonce() {
-        when(userRepository.findById(1L)).thenReturn(testUser);
-        when(categoryRepository.findById(1L)).thenReturn(testCategory);
-        doAnswer(inv -> {
-            Annonce a = inv.getArgument(0);
-            a.setId(100L);
-            return null;
-        }).when(annonceRepository).save(any(Annonce.class));
+    @DisplayName("createAnnonce - successful creation")
+    void createAnnonce_success() {
+        AnnonceCreateDTO createDTO = new AnnonceCreateDTO();
+        createDTO.setTitle("New");
+        createDTO.setDescription("Desc");
+        createDTO.setCategoryId(1L);
 
-        AnnonceCreateDTO dto = new AnnonceCreateDTO();
-        dto.setTitle("New Annonce");
-        dto.setDescription("New Description");
-        dto.setCategoryId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(author));
+        when(annonceMapper.toEntity(createDTO)).thenReturn(new Annonce());
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(annonceRepository.save(any(Annonce.class))).thenReturn(annonce);
+        when(annonceMapper.toDTO(any(Annonce.class))).thenReturn(annonceDTO);
 
-        AnnonceDTO result = annonceService.createAnnonce(dto, 1L);
+        AnnonceDTO result = annonceService.createAnnonce(createDTO, 1L);
 
         assertNotNull(result);
-        assertEquals("New Annonce", result.getTitle());
         verify(annonceRepository).save(any(Annonce.class));
     }
 
     @Test
-    @DisplayName("createAnnonce - should throw NotFoundException for unknown user")
-    void testCreateAnnonce_unknownUser() {
-        when(userRepository.findById(999L)).thenReturn(null);
+    @DisplayName("createAnnonce - throws when user not found")
+    void createAnnonce_userNotFound() {
+        AnnonceCreateDTO createDTO = new AnnonceCreateDTO();
+        createDTO.setTitle("New");
+        createDTO.setDescription("Desc");
 
-        AnnonceCreateDTO dto = new AnnonceCreateDTO();
-        dto.setTitle("Test");
-        dto.setDescription("Test");
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> annonceService.createAnnonce(dto, 999L));
+        assertThrows(ResourceNotFoundException.class, () -> annonceService.createAnnonce(createDTO, 99L));
     }
 
+    // --- UPDATE tests ---
+
     @Test
-    @DisplayName("updateAnnonce - should update when author and DRAFT")
-    void testUpdateAnnonce_success() {
-        when(annonceRepository.findByIdFetched(1L)).thenReturn(testAnnonce);
-        when(categoryRepository.findById(1L)).thenReturn(testCategory);
+    @DisplayName("updateAnnonce - successful update by author")
+    void updateAnnonce_success() {
+        AnnonceUpdateDTO updateDTO = new AnnonceUpdateDTO();
+        updateDTO.setTitle("Updated");
+        updateDTO.setDescription("Updated desc");
+        updateDTO.setVersion(0L);
 
-        AnnonceUpdateDTO dto = new AnnonceUpdateDTO();
-        dto.setTitle("Updated Title");
-        dto.setDescription("Updated Description");
-        dto.setAdress("Updated Address");
-        dto.setMail("updated@mail.com");
-        dto.setCategoryId(1L);
-        dto.setVersion(0L);
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
+        when(annonceRepository.save(any(Annonce.class))).thenReturn(annonce);
+        when(annonceMapper.toDTO(any(Annonce.class))).thenReturn(annonceDTO);
 
-        AnnonceDTO result = annonceService.updateAnnonce(1L, dto, 1L);
+        AnnonceDTO result = annonceService.updateAnnonce(1L, updateDTO, 1L);
 
         assertNotNull(result);
-        assertEquals("Updated Title", result.getTitle());
+        verify(annonceMapper).updateEntityFromDTO(eq(updateDTO), eq(annonce));
     }
 
     @Test
-    @DisplayName("updateAnnonce - should throw ForbiddenException when not author")
-    void testUpdateAnnonce_notAuthor() {
-        when(annonceRepository.findByIdFetched(1L)).thenReturn(testAnnonce);
+    @DisplayName("updateAnnonce - throws ForbiddenException when not author")
+    void updateAnnonce_notAuthor() {
+        AnnonceUpdateDTO updateDTO = new AnnonceUpdateDTO();
+        updateDTO.setVersion(0L);
 
-        AnnonceUpdateDTO dto = new AnnonceUpdateDTO();
-        dto.setTitle("Updated");
-        dto.setDescription("Updated");
-        dto.setVersion(0L);
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
 
-        assertThrows(ForbiddenException.class, () -> annonceService.updateAnnonce(1L, dto, 2L));
+        assertThrows(ForbiddenException.class, () -> annonceService.updateAnnonce(1L, updateDTO, 2L));
     }
 
     @Test
-    @DisplayName("updateAnnonce - should throw ConflictException when PUBLISHED")
-    void testUpdateAnnonce_publishedStatus() {
-        testAnnonce.setStatus(AnnonceStatus.PUBLISHED);
-        when(annonceRepository.findByIdFetched(1L)).thenReturn(testAnnonce);
+    @DisplayName("updateAnnonce - throws ConflictException when PUBLISHED")
+    void updateAnnonce_published() {
+        annonce.setStatus(AnnonceStatus.PUBLISHED);
+        AnnonceUpdateDTO updateDTO = new AnnonceUpdateDTO();
+        updateDTO.setVersion(0L);
 
-        AnnonceUpdateDTO dto = new AnnonceUpdateDTO();
-        dto.setTitle("Updated");
-        dto.setDescription("Updated");
-        dto.setVersion(0L);
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
 
-        assertThrows(ConflictException.class, () -> annonceService.updateAnnonce(1L, dto, 1L));
+        assertThrows(ConflictException.class, () -> annonceService.updateAnnonce(1L, updateDTO, 1L));
+    }
+
+    // --- PATCH tests ---
+
+    @Test
+    @DisplayName("patchAnnonce - successful partial update")
+    void patchAnnonce_success() {
+        AnnoncePatchDTO patchDTO = new AnnoncePatchDTO();
+        patchDTO.setTitle("Patched title");
+        patchDTO.setVersion(0L);
+
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
+        when(annonceRepository.save(any(Annonce.class))).thenReturn(annonce);
+        when(annonceMapper.toDTO(any(Annonce.class))).thenReturn(annonceDTO);
+
+        AnnonceDTO result = annonceService.patchAnnonce(1L, patchDTO, 1L, false);
+
+        assertNotNull(result);
+        verify(annonceMapper).patchEntityFromDTO(eq(patchDTO), eq(annonce));
     }
 
     @Test
-    @DisplayName("deleteAnnonce - should delete when ARCHIVED and author")
-    void testDeleteAnnonce_success() {
-        testAnnonce.setStatus(AnnonceStatus.ARCHIVED);
-        when(annonceRepository.findByIdFetched(1L)).thenReturn(testAnnonce);
+    @DisplayName("patchAnnonce - PUBLISHED annonce blocks content modification")
+    void patchAnnonce_publishedBlocksContentChange() {
+        annonce.setStatus(AnnonceStatus.PUBLISHED);
+        AnnoncePatchDTO patchDTO = new AnnoncePatchDTO();
+        patchDTO.setTitle("Change title");
+        patchDTO.setVersion(0L);
 
-        assertDoesNotThrow(() -> annonceService.deleteAnnonce(1L, 1L));
-        verify(annonceRepository).delete(1L);
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
+
+        assertThrows(ConflictException.class, () -> annonceService.patchAnnonce(1L, patchDTO, 1L, false));
     }
 
     @Test
-    @DisplayName("deleteAnnonce - should throw ConflictException when not ARCHIVED")
-    void testDeleteAnnonce_notArchived() {
-        testAnnonce.setStatus(AnnonceStatus.DRAFT);
-        when(annonceRepository.findByIdFetched(1L)).thenReturn(testAnnonce);
+    @DisplayName("patchAnnonce - only ADMIN can archive")
+    void patchAnnonce_onlyAdminCanArchive() {
+        AnnoncePatchDTO patchDTO = new AnnoncePatchDTO();
+        patchDTO.setStatus("ARCHIVED");
+        patchDTO.setVersion(0L);
+
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
+
+        assertThrows(ForbiddenException.class, () -> annonceService.patchAnnonce(1L, patchDTO, 1L, false));
+    }
+
+    @Test
+    @DisplayName("patchAnnonce - ADMIN can archive")
+    void patchAnnonce_adminCanArchive() {
+        AnnoncePatchDTO patchDTO = new AnnoncePatchDTO();
+        patchDTO.setStatus("ARCHIVED");
+        patchDTO.setVersion(0L);
+
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
+        when(annonceRepository.save(any(Annonce.class))).thenReturn(annonce);
+        when(annonceMapper.toDTO(any(Annonce.class))).thenReturn(annonceDTO);
+
+        AnnonceDTO result = annonceService.patchAnnonce(1L, patchDTO, 1L, true);
+
+        assertNotNull(result);
+    }
+
+    // --- DELETE tests ---
+
+    @Test
+    @DisplayName("deleteAnnonce - successful deletion of ARCHIVED annonce")
+    void deleteAnnonce_success() {
+        annonce.setStatus(AnnonceStatus.ARCHIVED);
+
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
+
+        annonceService.deleteAnnonce(1L, 1L);
+
+        verify(annonceRepository).delete(annonce);
+    }
+
+    @Test
+    @DisplayName("deleteAnnonce - throws ConflictException when not ARCHIVED")
+    void deleteAnnonce_notArchived() {
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
 
         assertThrows(ConflictException.class, () -> annonceService.deleteAnnonce(1L, 1L));
     }
 
     @Test
-    @DisplayName("deleteAnnonce - should throw ForbiddenException when not author")
-    void testDeleteAnnonce_notAuthor() {
-        testAnnonce.setStatus(AnnonceStatus.ARCHIVED);
-        when(annonceRepository.findByIdFetched(1L)).thenReturn(testAnnonce);
+    @DisplayName("deleteAnnonce - throws ForbiddenException when not author")
+    void deleteAnnonce_notAuthor() {
+        annonce.setStatus(AnnonceStatus.ARCHIVED);
+
+        when(annonceRepository.findById(1L)).thenReturn(Optional.of(annonce));
 
         assertThrows(ForbiddenException.class, () -> annonceService.deleteAnnonce(1L, 2L));
-    }
-
-    @Test
-    @DisplayName("deleteAnnonce - should throw NotFoundException when not found")
-    void testDeleteAnnonce_notFound() {
-        when(annonceRepository.findByIdFetched(999L)).thenReturn(null);
-        assertThrows(NotFoundException.class, () -> annonceService.deleteAnnonce(999L, 1L));
     }
 }

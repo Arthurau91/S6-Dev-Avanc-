@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  labels:
+    app: masterannonce
+data:
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-service:5432/MasterAnnonce"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  SPRING_JPA_SHOW_SQL: "false"
+  JWT_EXPIRATION_MS: "3600000"
+  SERVER_PORT: "8080"

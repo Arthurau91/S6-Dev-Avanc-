@@ -1,8 +1,7 @@
 package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * DTO for login request.
@@ -11,11 +10,11 @@ import javax.validation.constraints.NotBlank;
 public class LoginRequestDTO {
 
     @NotBlank(message = "Le nom d'utilisateur est obligatoire")
-    @Schema(description = "Username", example = "testuser", required = true)
+    @Schema(description = "Username", example = "testuser", requiredMode = Schema.RequiredMode.REQUIRED)
     private String username;
 
     @NotBlank(message = "Le mot de passe est obligatoire")
-    @Schema(description = "Password", example = "password123", required = true)
+    @Schema(description = "Password", example = "password123", requiredMode = Schema.RequiredMode.REQUIRED)
     private String password;
 
     public LoginRequestDTO() {}
