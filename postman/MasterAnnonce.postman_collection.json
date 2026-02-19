@@ -1,0 +1,503 @@
+{
+  "info": {
+    "name": "MasterAnnonce API",
+    "description": "Collection Postman pour l'API REST MasterAnnonce — TP Dev Avancé #3\n\nBase URL: http://localhost:8080/MasterAnnonce-1.0-SNAPSHOT/api",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/MasterAnnonce-1.0-SNAPSHOT/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "annonceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "annonceVersion",
+      "value": "0",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 — Test",
+      "item": [
+        {
+          "name": "Hello World",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/helloWorld",
+              "host": ["{{baseUrl}}"],
+              "path": ["helloWorld"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Params — PathParam + QueryParams",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/params/42?name=test&page=2",
+              "host": ["{{baseUrl}}"],
+              "path": ["params", "42"],
+              "query": [
+                { "key": "name", "value": "test" },
+                { "key": "page", "value": "2" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Params — QueryParams only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/params?keyword=java&page=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["params"],
+              "query": [
+                { "key": "keyword", "value": "java" },
+                { "key": "page", "value": "1" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 — Authentication",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('token', json.token);",
+                  "    console.log('Token saved: ' + json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login (testuser)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('token', json.token);",
+                  "    console.log('Token saved: ' + json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"test123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login — Invalid credentials (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login — Validation error (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"\",\n  \"password\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 — Annonces (CRUD)",
+      "item": [
+        {
+          "name": "List annonces (default pagination)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/annonces",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List annonces (with filters)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/annonces?keyword=dev&categoryId=1&status=DRAFT&page=1&pageSize=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces"],
+              "query": [
+                { "key": "keyword", "value": "dev" },
+                { "key": "categoryId", "value": "1" },
+                { "key": "status", "value": "DRAFT" },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "5" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get annonce by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/annonces/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get annonce — Not Found (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/annonces/99999",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces", "99999"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create annonce",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('annonceId', json.id);",
+                  "    pm.collectionVariables.set('annonceVersion', json.version);",
+                  "    console.log('Created annonce ID: ' + json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Développeur Java Junior\",\n  \"description\": \"Recherche développeur Java pour projet universitaire. Connaissance de JPA et JAX-RS requise.\",\n  \"adress\": \"IUT de Montreuil, 140 Rue de la Nouvelle France\",\n  \"mail\": \"contact@iut-montreuil.fr\",\n  \"categoryId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/annonces",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create annonce — Validation error (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\",\n  \"description\": \"x\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/annonces",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create annonce — No auth (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Annonce sans token\",\n  \"description\": \"Devrait échouer avec 401\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/annonces",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update annonce (PUT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('annonceVersion', json.version);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Développeur Java Junior — MODIFIÉ\",\n  \"description\": \"Description mise à jour avec des détails supplémentaires sur le poste.\",\n  \"adress\": \"IUT de Montreuil\",\n  \"mail\": \"recrutement@iut-montreuil.fr\",\n  \"categoryId\": 1,\n  \"version\": {{annonceVersion}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/annonces/{{annonceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces", "{{annonceId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Patch annonce — Publish (DRAFT → PUBLISHED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('annonceVersion', json.version);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PUBLISHED\",\n  \"version\": {{annonceVersion}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/annonces/{{annonceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces", "{{annonceId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update PUBLISHED annonce — Conflict (409)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tentative de modification\",\n  \"description\": \"Devrait échouer car l'annonce est PUBLISHED\",\n  \"version\": {{annonceVersion}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/annonces/{{annonceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces", "{{annonceId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Patch annonce — Archive (PUBLISHED → ARCHIVED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('annonceVersion', json.version);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ARCHIVED\",\n  \"version\": {{annonceVersion}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/annonces/{{annonceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces", "{{annonceId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete annonce (ARCHIVED)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/annonces/{{annonceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces", "{{annonceId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete non-ARCHIVED annonce — Conflict (409)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/annonces/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["annonces", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 — OpenAPI",
+      "item": [
+        {
+          "name": "Swagger JSON",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/openapi.json",
+              "host": ["{{baseUrl}}"],
+              "path": ["openapi.json"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

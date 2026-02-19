@@ -29,6 +29,9 @@ public class User {
     @Size(min = 8, message = "Le mot de passe doit faire au moins 8 caractères")
     private String password;
 
+    @Column(nullable = false)
+    private String role = "USER";
+
     @Column(name = "created_at")
     private Timestamp createdAt;
 
@@ -46,6 +49,11 @@ public class User {
         this.password = password;
     }
 
+    public User(String username, String email, String password, String role) {
+        this(username, email, password);
+        this.role = role;
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -57,6 +65,9 @@ public class User {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }

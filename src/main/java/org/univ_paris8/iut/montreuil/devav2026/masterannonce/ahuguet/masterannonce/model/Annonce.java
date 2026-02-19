@@ -37,6 +37,9 @@ public class Annonce {
     @Enumerated(EnumType.STRING)
     private AnnonceStatus status;
 
+    @Version
+    private Long version;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private User author;
@@ -78,6 +81,9 @@ public class Annonce {
 
     public AnnonceStatus getStatus() { return status; }
     public void setStatus(AnnonceStatus status) { this.status = status; }
+
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 
     public User getAuthor() { return author; }
     public void setAuthor(User author) { this.author = author; }

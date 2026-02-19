@@ -1,22 +1,44 @@
 package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masterannonce.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
+/**
+ * ThreadLocal-based EntityManager management.
+ * Supports configurable persistence unit for test/production environments.
+ */
 public class EntityManagerHelper {
 
-    private static final EntityManagerFactory emf;
-    private static final ThreadLocal<EntityManager> threadLocal;
+    private static final Logger LOG = LoggerFactory.getLogger(EntityManagerHelper.class);
+    private static final String DEFAULT_PU = "MasterAnnoncePU";
+    private static volatile EntityManagerFactory emf;
+    private static final ThreadLocal<EntityManager> threadLocal = new ThreadLocal<>();
 
     static {
-        emf = Persistence.createEntityManagerFactory("MasterAnnoncePU");
-        threadLocal = new ThreadLocal<>();
+        try {
+            emf = Persistence.createEntityManagerFactory(DEFAULT_PU);
+        } catch (Exception e) {
+            LOG.warn("Could not initialize default persistence unit '{}': {}", DEFAULT_PU, e.getMessage());
+        }
+    }
+
+    /**
+     * Initialize with a specific persistence unit (used for tests with H2).
+     */
+    public static synchronized void init(String persistenceUnitName) {
+        if (emf != null && emf.isOpen()) {
+            emf.close();
+        }
+        emf = Persistence.createEntityManagerFactory(persistenceUnitName);
+        LOG.info("EntityManagerHelper initialized with PU: {}", persistenceUnitName);
     }
 
     public static EntityManager getEntityManager() {
         EntityManager em = threadLocal.get();
-
         if (em == null || !em.isOpen()) {
             em = emf.createEntityManager();
             threadLocal.set(em);
@@ -33,7 +55,9 @@ public class EntityManagerHelper {
     }
 
     public static void closeEntityManagerFactory() {
-        emf.close();
+        if (emf != null && emf.isOpen()) {
+            emf.close();
+        }
     }
 
     public static void beginTransaction() {
@@ -44,7 +68,13 @@ public class EntityManagerHelper {
         getEntityManager().getTransaction().commit();
     }
 
-     public static void rollback() {
-        getEntityManager().getTransaction().rollback();
+    public static void rollback() {
+        try {
+            if (getEntityManager().getTransaction().isActive()) {
+                getEntityManager().getTransaction().rollback();
+            }
+        } catch (Exception e) {
+            LOG.error("Error during rollback", e);
+        }
     }
 }
