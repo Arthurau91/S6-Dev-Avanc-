@@ -3,11 +3,17 @@ package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masteranno
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * DTO for partial update of an Annonce (PATCH).
  * Only non-null fields will be applied.
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "Request body for partial update (PATCH) of an announcement")
 public class AnnoncePatchDTO {
 
@@ -36,27 +42,4 @@ public class AnnoncePatchDTO {
     @NotNull(message = "La version est obligatoire pour le verrouillage optimiste")
     @Schema(description = "Version for optimistic locking", example = "0", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long version;
-
-    public AnnoncePatchDTO() {}
-
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public String getAdress() { return adress; }
-    public void setAdress(String adress) { this.adress = adress; }
-
-    public String getMail() { return mail; }
-    public void setMail(String mail) { this.mail = mail; }
-
-    public Long getCategoryId() { return categoryId; }
-    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
-    public Long getVersion() { return version; }
-    public void setVersion(Long version) { this.version = version; }
 }

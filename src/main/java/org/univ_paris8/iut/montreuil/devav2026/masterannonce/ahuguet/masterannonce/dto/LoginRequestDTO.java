@@ -2,10 +2,16 @@ package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masteranno
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * DTO for login request.
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "Login request")
 public class LoginRequestDTO {
 
@@ -16,17 +22,4 @@ public class LoginRequestDTO {
     @NotBlank(message = "Le mot de passe est obligatoire")
     @Schema(description = "Password", example = "password123", requiredMode = Schema.RequiredMode.REQUIRED)
     private String password;
-
-    public LoginRequestDTO() {}
-
-    public LoginRequestDTO(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
-
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
 }

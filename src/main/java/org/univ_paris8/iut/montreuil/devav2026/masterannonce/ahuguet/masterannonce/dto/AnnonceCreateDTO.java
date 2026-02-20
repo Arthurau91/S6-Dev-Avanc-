@@ -3,10 +3,16 @@ package org.univ_paris8.iut.montreuil.devav2026.masterannonce.ahuguet.masteranno
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * DTO for creating a new Annonce (POST).
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "Request body for creating an announcement")
 public class AnnonceCreateDTO {
 
@@ -30,21 +36,4 @@ public class AnnonceCreateDTO {
 
     @Schema(description = "Category ID", example = "1")
     private Long categoryId;
-
-    public AnnonceCreateDTO() {}
-
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public String getAdress() { return adress; }
-    public void setAdress(String adress) { this.adress = adress; }
-
-    public String getMail() { return mail; }
-    public void setMail(String mail) { this.mail = mail; }
-
-    public Long getCategoryId() { return categoryId; }
-    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
 }
